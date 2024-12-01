@@ -1,0 +1,118 @@
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+class Company {
+    private String name;
+    private Environment environment;
+    private Social social;
+    private Governance governance;
+
+    public Company(String name, Environment environment, Social social, Governance governance) {
+        this.name = name;
+        this.environment = environment;
+        this.social = social;
+        this.governance = governance;
+    }
+
+    public double calculateESGScore() {
+        double totalScore = environment.calculateScore() + social.calculateScore() + governance.calculateScore();
+        double maxScore = Environment.MAX_SCORE + Social.MAX_SCORE + Governance.MAX_SCORE;
+        return (totalScore / maxScore) * 100;  
+    }
+
+    public String getName() {
+        return name;
+    }
+}
+
+class Environment {
+    private double ghgEmissions;    
+    private double energyConsumption;
+    private double renewableGeneration;
+    public static final double MAX_SCORE = 30;
+
+    public Environment(double ghgEmissions, double energyConsumption, double renewableGeneration) {
+        this.ghgEmissions = ghgEmissions;
+        this.energyConsumption = energyConsumption;
+        this.renewableGeneration = renewableGeneration;
+    }
+
+    public double calculateScore() {
+        double emissionScore = Math.max(0, 10 - ghgEmissions);  
+        double energyScore = Math.max(0, 10 - (energyConsumption / 10000));  
+        double renewableScore = Math.min(renewableGeneration * 2, 10);  
+        return emissionScore + energyScore + renewableScore;
+    }
+}
+
+class Social {
+    private double trainingHours;  
+    private double csrSpend;        
+    private double ltifr;          
+    public static final double MAX_SCORE = 30;
+
+    public Social(double trainingHours, double csrSpend, double ltifr) {
+        this.trainingHours = trainingHours;
+        this.csrSpend = csrSpend;
+        this.ltifr = ltifr;
+    }
+
+    public double calculateScore() {
+        double trainingScore = Math.min(trainingHours / 10, 10);  
+        double csrScore = Math.min(csrSpend / 10, 10);  
+        double safetyScore = Math.max(0, 10 - ltifr * 10);  
+        return trainingScore + csrScore + safetyScore;
+    }
+}
+
+class Governance {
+    private double revenue;          
+    private double profit;          
+    private int grievancesReported;  
+    public static final double MAX_SCORE = 30;
+
+    public Governance(double revenue, double profit, int grievancesReported) {
+        this.revenue = revenue;
+        this.profit = profit;
+        this.grievancesReported = grievancesReported;
+    }
+
+    public double calculateScore() {
+        double revenueScore = Math.min(revenue / 10000, 10);  
+        double profitScore = Math.min(profit / 1000, 10);  
+        double grievanceScore = Math.max(0, 10 - grievancesReported * 0.1);  
+        return revenueScore + profitScore + grievanceScore;
+    }
+}
+
+public class ESGRanking {
+    public static void main(String[] args) {
+        List<Company> companies = new ArrayList<>();
+
+        // Add the data for NTPC, Adani Power, and Tata Power
+        companies.add(new Company("NTPC",
+                new Environment(125.4, 500000000, 0.3),  // Example data
+                new Social(45.5, 300, 0.1),
+                new Governance(4000000, 100000, 50)));
+
+        companies.add(new Company("Adani Power",
+                new Environment(150.0, 450000000, 0.2),  // Example data
+                new Social(30.5, 250, 0.2),
+                new Governance(3500000, 120000, 60)));
+
+        companies.add(new Company("Tata Power",
+                new Environment(100.0, 300000000, 0.4),  // Example data
+                new Social(50.0, 350, 0.15),
+                new Governance(5000000, 150000, 30)));
+
+        // Sort companies based on ESG score in descending order
+        companies.sort(Comparator.comparingDouble(Company::calculateESGScore).reversed());
+
+        // Print the rankings
+        System.out.println("Company Rankings based on ESG Score:");
+        for (int i = 0; i < companies.size(); i++) {
+            System.out.printf("%d. %s - ESG Score: %.2f\n", i + 1, companies.get(i).getName(), companies.get(i).calculateESGScore());
+        }
+    }
+}
